@@ -17,13 +17,20 @@ namespace TypingPractice
         static void Main(string[] args)
         {
             WebClient client = new();
-            var downloadedString = client.DownloadString("https://random-word-api.herokuapp.com/word?number=10");
-            string[] currentWords = ApiResultToList(downloadedString);
+            
+            
             Console.WriteLine("Welcome to the Typing Practice Console App!");
+            Console.WriteLine("Word length: ");
+            var wordLength = Console.ReadLine();
+            Console.WriteLine("Number of words: ");
+            var wordNumber = Console.ReadLine();
+            var downloadedString = client.DownloadString($"https://random-word-api.herokuapp.com/word?length={wordLength}&number={wordNumber}");
+            string[] currentWords = ApiResultToList(downloadedString);
             Console.WriteLine("Press any key to start typing.");
             Console.ReadKey();
 
             int totalWords = currentWords.Length;
+            // Console.WriteLine(totalWords);
             int correctWords = 0;
             double totalTime = 0;
             List<string> incorrectWords = new();
