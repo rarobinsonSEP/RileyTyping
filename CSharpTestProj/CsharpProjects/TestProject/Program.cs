@@ -20,6 +20,71 @@ namespace TypingPractice
             
             
             Console.WriteLine("Welcome to the Typing Practice Console App!");
+            Console.WriteLine("Please select game type for paractice. Random or Challenge");
+            var gameType = Console.ReadLine();
+            if(gameType.ToLower() == "random")
+            {
+                RandomWordGame(client);
+            }
+        }
+
+        static string GetRandomWord()
+        {
+            return words[random.Next(words.Count)];
+        }
+
+        private static void PlayPositiveFeedback()
+        {
+            var audioFile = Path.Combine(Directory.GetCurrentDirectory(), "positive_feedback.wav");
+
+            using(var inputStream = File.OpenRead(audioFile)){
+                using (WaveFileReader reader = new WaveFileReader(audioFile))
+                using (WaveOutEvent output = new WaveOutEvent())
+                {
+                    output.Init(reader);
+                    output.Play();
+                    while (output.PlaybackState == PlaybackState.Playing)
+                    {
+                        Thread.Sleep(100);
+                    }
+                }
+            }
+
+            
+        }
+
+        private static void PlayNegativeFeedback()
+        {
+            var audioFile = Path.Combine(Directory.GetCurrentDirectory(), "negative_feedback.wav");
+
+            using (WaveFileReader reader = new WaveFileReader(audioFile))
+            using (WaveOutEvent output = new WaveOutEvent())
+            {
+                output.Init(reader);
+                output.Play();
+                while (output.PlaybackState == PlaybackState.Playing)
+                {
+                    Thread.Sleep(100);
+                }
+            }
+        }
+
+        private static string[] ApiResultToList(string apiResult){
+            apiResult = apiResult.Remove(0, 1);
+            apiResult = apiResult.Remove(apiResult.Length - 1);
+            string[] resultArray = apiResult.Split(',');
+            for(int i = 0; i < resultArray.Length; i++){
+                resultArray[i] = RemoveQuotes(resultArray[i]);
+            }
+
+            return resultArray;
+        }
+
+        private static string RemoveQuotes(string word){
+            return word.Replace("\"", string.Empty);
+        }
+
+        private static void RandomWordGame(WebClient client){
             Console.WriteLine("Word length: ");
             var wordLength = Console.ReadLine();
             Console.WriteLine("Number of words: ");
@@ -80,62 +145,6 @@ namespace TypingPractice
                     Console.WriteLine($"Incorrect. The correct spelling was {retryWords[i]}");
                 }
             }
-        }
-
-        static string GetRandomWord()
-        {
-            return words[random.Next(words.Count)];
-        }
-
-        private static void PlayPositiveFeedback()
-        {
-            var audioFile = Path.Combine(Directory.GetCurrentDirectory(), "positive_feedback.wav");
-
-            using(var inputStream = File.OpenRead(audioFile)){
-                using (WaveFileReader reader = new WaveFileReader(audioFile))
-                using (WaveOutEvent output = new WaveOutEvent())
-                {
-                    output.Init(reader);
-                    output.Play();
-                    while (output.PlaybackState == PlaybackState.Playing)
-                    {
-                        Thread.Sleep(100);
-                    }
-                }
-            }
-
-            
-        }
-
-        private static void PlayNegativeFeedback()
-        {
-            var audioFile = Path.Combine(Directory.GetCurrentDirectory(), "negative_feedback.wav");
-
-            using (WaveFileReader reader = new WaveFileReader(audioFile))
-            using (WaveOutEvent output = new WaveOutEvent())
-            {
-                output.Init(reader);
-                output.Play();
-                while (output.PlaybackState == PlaybackState.Playing)
-                {
-                    Thread.Sleep(100);
-                }
-            }
-        }
-
-        private static string[] ApiResultToList(string apiResult){
-            apiResult = apiResult.Remove(0, 1);
-            apiResult = apiResult.Remove(apiResult.Length - 1);
-            string[] resultArray = apiResult.Split(',');
-            for(int i = 0; i < resultArray.Length; i++){
-                resultArray[i] = RemoveQuotes(resultArray[i]);
-            }
-
-            return resultArray;
-        }
-
-        private static string RemoveQuotes(string word){
-            return word.Replace("\"", string.Empty);
         }
     }
 }
