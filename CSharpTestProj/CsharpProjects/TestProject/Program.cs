@@ -134,22 +134,7 @@ namespace TypingPractice
 
             double typingSpeed = correctWords / totalTime;
             Console.WriteLine($"Your typing speed is {typingSpeed:F2} words per second.");
-            Console.WriteLine($"You typed {correctWords} out of {totalWords} correctly.");
-            var missedWords = string.Join(", ", incorrectWords);
-            Console.WriteLine(missedWords);
-
-
-            for(int i = 0; i < retryWords.Count; i++){
-                Console.WriteLine($"Type the word: {retryWords[i]}");
-                var userInput = Console.ReadLine();
-
-                if(userInput.ToLower() == retryWords[i]){
-                    Console.WriteLine("Correct!");
-                }
-                else{
-                    Console.WriteLine($"Incorrect. The correct spelling was {retryWords[i]}");
-                }
-            }
+            RetryMechanic(correctWords, totalWords, incorrectWords, retryWords);
         }
 
         private static void ChallengeWordGame(WebClient client){
@@ -209,6 +194,24 @@ namespace TypingPractice
 
             }
 
+            RetryMechanic(correctWords, totalWords, incorrectWords, retryWords);
+        }
+
+        public static int Ranking(string word, string[] letters){
+            int rank = 0;
+            for(int i = 0; i < letters.Length; i++){
+                foreach (char letter in word)
+                {
+                    if(letter == char.Parse(letters[i])){
+                        rank++;
+                    }
+                }
+            }
+            
+            return rank;
+        }
+
+        public static void RetryMechanic(int correctWords, int totalWords, List<string> incorrectWords, List<string> retryWords){
             Console.WriteLine($"You typed {correctWords} out of {totalWords} correctly.");
             var missedWords = string.Join(", ", incorrectWords);
             Console.WriteLine(missedWords);
@@ -225,20 +228,6 @@ namespace TypingPractice
                     Console.WriteLine($"Incorrect. The correct spelling was {retryWords[i]}");
                 }
             }
-        }
-
-        public static int Ranking(string word, string[] letters){
-            int rank = 0;
-            for(int i = 0; i < letters.Length; i++){
-                foreach (char letter in word)
-                {
-                    if(letter == char.Parse(letters[i])){
-                        rank++;
-                    }
-                }
-            }
-            
-            return rank;
         }
     }
 }
