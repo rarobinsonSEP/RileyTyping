@@ -138,29 +138,37 @@ namespace TypingPractice
         }
 
         private static void ChallengeWordGame(WebClient client){
+            Console.WriteLine("How many words do you want to type?: ");
+            var numWords = Int32.Parse(Console.ReadLine());
             Console.WriteLine("Input challenge letters separated by a comma and NO SPACE: ");
             var letters = Console.ReadLine();
             string[] lettersList = letters.Split(",");
             
-
-            var downloadedString = client.DownloadString($"https://random-word-api.herokuapp.com/word?number=100");
-            string[] currentWords = ApiResultToList(downloadedString);
-            Dictionary<string, int> challengeWordValues = new();
-            
-            foreach (var word in currentWords)
-            {
-                challengeWordValues.Add(word, Ranking(word, lettersList));
-            }
-            
-            var orderedChallengeWordValues = challengeWordValues.OrderByDescending(x => x.Value);
             List<string> challengeWords = new();
-            foreach (var key in orderedChallengeWordValues)
-            {
-                if(key.Value > 0){
-                    challengeWords.Add(key.Key);
+
+            while(challengeWords.Count < numWords){
+                var downloadedString = client.DownloadString($"https://random-word-api.herokuapp.com/word?number=100");
+                string[] currentWords = ApiResultToList(downloadedString);
+                Dictionary<string, int> challengeWordValues = new();
+                
+                foreach (var word in currentWords)
+                {
+                    challengeWordValues.Add(word, Ranking(word, lettersList));
                 }
-                else break;
-            }
+                
+                var orderedChallengeWordValues = challengeWordValues.OrderByDescending(x => x.Value);
+                foreach (var key in orderedChallengeWordValues)
+                {
+                    if(challengeWords.Count < numWords && key.Value > 0 && !challengeWords.Contains(key.Key)){
+                        challengeWords.Add(key.Key);
+                    }
+                    else break;
+                }
+                Console.WriteLine(challengeWords.Count);
+                Console.WriteLine(numWords);
+            } 
+
+            
             
 
 
@@ -195,6 +203,10 @@ namespace TypingPractice
             }
 
             RetryMechanic(correctWords, totalWords, incorrectWords, retryWords);
+        }
+
+        public static void ScrambleGame(WebClient client){
+
         }
 
         public static int Ranking(string word, string[] letters){
