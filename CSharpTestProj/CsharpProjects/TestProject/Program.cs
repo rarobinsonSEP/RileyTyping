@@ -21,7 +21,7 @@ namespace TypingPractice
             
             
             Console.WriteLine("Welcome to the Typing Practice Console App!");
-            Console.WriteLine("Please select game type for paractice. Random or Challenge");
+            Console.WriteLine("Please select game type for practice. Random or Challenge");
             var gameType = Console.ReadLine();
             if(gameType.ToLower() == "random")
             {
@@ -164,8 +164,6 @@ namespace TypingPractice
                     }
                     else break;
                 }
-                Console.WriteLine(challengeWords.Count);
-                Console.WriteLine(numWords);
             } 
 
             
