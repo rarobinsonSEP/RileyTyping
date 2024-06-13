@@ -7,6 +7,7 @@ using NAudio.Wave;
 using System.IO;
 using System.Net;
 using NAudio.Wave.Asio;
+using NAudio.Dmo;
 
 namespace TypingPractice
 {
@@ -21,7 +22,7 @@ namespace TypingPractice
             
             
             Console.WriteLine("Welcome to the Typing Practice Console App!");
-            Console.WriteLine("Please select game type for practice. Random or Challenge");
+            Console.WriteLine("Please select game type for practice. Random, Challenge, or Scramble");
             var gameType = Console.ReadLine();
             if(gameType.ToLower() == "random")
             {
@@ -30,6 +31,10 @@ namespace TypingPractice
             else if(gameType.ToLower() == "challenge")
             {
                 ChallengeWordGame(client);
+            }
+            else if(gameType.ToLower() == "scramble")
+            {
+                ScrambleGame(client);
             }
         }
 
@@ -203,10 +208,6 @@ namespace TypingPractice
             RetryMechanic(correctWords, totalWords, incorrectWords, retryWords);
         }
 
-        public static void ScrambleGame(WebClient client){
-
-        }
-
         public static int Ranking(string word, string[] letters){
             int rank = 0;
             for(int i = 0; i < letters.Length; i++){
@@ -219,6 +220,64 @@ namespace TypingPractice
             }
             
             return rank;
+        }
+
+        public static void ScrambleGame(WebClient client){
+            List<string> challengeWords = new();
+            
+            var downloadedString = client.DownloadString($"https://random-word-api.herokuapp.com/word?number=10");
+            string[] currentWords = ApiResultToList(downloadedString);
+            
+            foreach (var word in currentWords)
+            {
+                challengeWords.Add(word);
+                challengeWords.Add(ScrambleLetters(word));
+            }
+
+            Console.WriteLine("Press any key to start typing.");
+            Console.ReadKey();
+
+            int totalWords = challengeWords.Count;
+            int correctWords = 0;
+            List<string> incorrectWords = new();
+            List<string> retryWords = new();
+
+            for (int i = 0; i < totalWords; i++)
+            {
+                var word = challengeWords[i];
+                Console.WriteLine($"Type the word: {word}");
+                var userInput = Console.ReadLine();
+
+                if (userInput.ToLower() == word)
+                {
+                    // PlayPositiveFeedback();
+                    correctWords++;
+                    Console.WriteLine("Correct!");
+                }
+                else
+                {
+                    PlayNegativeFeedback();
+                    incorrectWords.Add(userInput);
+                    retryWords.Add(word);
+                    Console.WriteLine($"Incorrect. The correct spelling was {word}");
+                }
+
+            }
+
+            RetryMechanic(correctWords, totalWords, incorrectWords, retryWords);
+        }
+
+        public static string ScrambleLetters(string input){
+            char[] characters = input.ToCharArray();
+            
+            for(int i = characters.Length - 1; i > 0; i--){
+                int j = random.Next(i + 1);
+                char temp = characters[i];
+                characters[i] = characters[j];
+                characters[j] = temp;
+            }
+
+            return new string(characters);
         }
 
         public static void RetryMechanic(int correctWords, int totalWords, List<string> incorrectWords, List<string> retryWords){
