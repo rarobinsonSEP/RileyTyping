@@ -24,15 +24,15 @@ namespace TypingPractice
             Console.WriteLine("Welcome to the Typing Practice Console App!");
             Console.WriteLine("Please select game type for practice. Random, Challenge, or Scramble");
             var gameType = Console.ReadLine();
-            if(gameType.ToLower() == "random")
+            if(gameType.ToLower().Trim() == "random")
             {
                 RandomWordGame(client);
             }
-            else if(gameType.ToLower() == "challenge")
+            else if(gameType.ToLower().Trim() == "challenge")
             {
                 ChallengeWordGame(client);
             }
-            else if(gameType.ToLower() == "scramble")
+            else if(gameType.ToLower().Trim() == "scramble")
             {
                 ScrambleGame(client);
             }
@@ -100,30 +100,30 @@ namespace TypingPractice
             Console.WriteLine("Number of words: ");
             var wordNumber = Console.ReadLine();
             var downloadedString = client.DownloadString($"https://random-word-api.herokuapp.com/word?length={wordLength}&number={wordNumber}");
-            string[] currentWords = ApiResultToList(downloadedString);
+            string[] challengeWords = ApiResultToList(downloadedString);
             Console.WriteLine("Press any key to start typing.");
             Console.ReadKey();
 
-            int totalWords = currentWords.Length;
+            int totalWords = challengeWords.Length;
 
-            int correctWords = 0;
             double totalTime = 0;
             List<string> incorrectWords = new();
             List<string> retryWords = new();
+            List<string> correctWords = new();
 
             for (int i = 0; i < totalWords; i++)
             {
                 // var word = GetRandomWord();
-                var word = currentWords[i];
+                var word = challengeWords[i];
                 Console.WriteLine($"Type the word: {word}");
                 Stopwatch stopwatch = Stopwatch.StartNew();
                 var userInput = Console.ReadLine();
                 stopwatch.Stop();
 
-                if (userInput.ToLower() == word)
+                if (userInput.ToLower().Trim() == word)
                 {
                     // PlayPositiveFeedback();
-                    correctWords++;
+                    correctWords.Add(word);
                     Console.WriteLine("Correct!");
                 }
                 else
@@ -137,9 +137,10 @@ namespace TypingPractice
                 totalTime += stopwatch.Elapsed.TotalSeconds;
             }
 
-            double typingSpeed = correctWords / totalTime;
-            Console.WriteLine($"Your typing speed is {typingSpeed:F2} words per second.");
-            RetryMechanic(correctWords, totalWords, incorrectWords, retryWords);
+            double typingSpeed = correctWords.Count / totalTime;
+            double wpm = GetAdjustedWPM(correctWords, totalTime);
+            Console.WriteLine($"Your typing speed is {typingSpeed:F2} words per second. (Adjusted WPM: {wpm:F2})");
+            RetryMechanic(correctWords.Count, totalWords, incorrectWords, retryWords);
         }
 
         private static void ChallengeWordGame(WebClient client){
@@ -179,20 +180,23 @@ namespace TypingPractice
             Console.ReadKey();
 
             int totalWords = challengeWords.Count;
-            int correctWords = 0;
             List<string> incorrectWords = new();
             List<string> retryWords = new();
+            List<string> correctWords = new();
+            double totalTime = 0;
 
             for (int i = 0; i < totalWords; i++)
             {
                 var word = challengeWords[i];
                 Console.WriteLine($"Type the word: {word}");
+                Stopwatch stopwatch = Stopwatch.StartNew();
                 var userInput = Console.ReadLine();
+                stopwatch.Stop();
 
-                if (userInput.ToLower() == word)
+                if (userInput.ToLower().Trim() == word)
                 {
                     // PlayPositiveFeedback();
-                    correctWords++;
+                    correctWords.Add(word);
                     Console.WriteLine("Correct!");
                 }
                 else
@@ -203,9 +207,13 @@ namespace TypingPractice
                     Console.WriteLine($"Incorrect. The correct spelling was {word}");
                 }
 
+                totalTime += stopwatch.Elapsed.TotalSeconds;
             }
 
-            RetryMechanic(correctWords, totalWords, incorrectWords, retryWords);
+            double typingSpeed = correctWords.Count / totalTime;
+            double wpm = GetAdjustedWPM(correctWords, totalTime);
+            Console.WriteLine($"Your typing speed is {typingSpeed:F2} words per second. (Adjusted WPM: {wpm:F2})");
+            RetryMechanic(correctWords.Count, totalWords, incorrectWords, retryWords);
         }
 
         public static int Ranking(string word, string[] letters){
@@ -238,20 +246,24 @@ namespace TypingPractice
             Console.ReadKey();
 
             int totalWords = challengeWords.Count;
-            int correctWords = 0;
             List<string> incorrectWords = new();
             List<string> retryWords = new();
+            List<string> correctWords = new();
+            
+            double totalTime = 0;
 
             for (int i = 0; i < totalWords; i++)
             {
                 var word = challengeWords[i];
                 Console.WriteLine($"Type the word: {word}");
+                Stopwatch stopwatch = Stopwatch.StartNew();
                 var userInput = Console.ReadLine();
+                stopwatch.Stop();
 
-                if (userInput.ToLower() == word)
+                if (userInput.ToLower().Trim() == word)
                 {
                     // PlayPositiveFeedback();
-                    correctWords++;
+                    correctWords.Add(word);
                     Console.WriteLine("Correct!");
                 }
                 else
@@ -261,10 +273,14 @@ namespace TypingPractice
                     retryWords.Add(word);
                     Console.WriteLine($"Incorrect. The correct spelling was {word}");
                 }
+                
+                totalTime += stopwatch.Elapsed.TotalSeconds;
 
             }
-
-            RetryMechanic(correctWords, totalWords, incorrectWords, retryWords);
+            double typingSpeed = correctWords.Count / totalTime;
+            double wpm = GetAdjustedWPM(correctWords, totalTime);
+            Console.WriteLine($"Your typing speed is {typingSpeed:F2} words per second. (Adjusted WPM: {wpm:F2})");
+            RetryMechanic(correctWords.Count, totalWords, incorrectWords, retryWords);
         }
 
         public static string ScrambleLetters(string input){
@@ -290,13 +306,22 @@ namespace TypingPractice
                 Console.WriteLine($"Type the word: {retryWords[i]}");
                 var userInput = Console.ReadLine();
 
-                if(userInput.ToLower() == retryWords[i]){
+                if(userInput.ToLower().Trim() == retryWords[i]){
                     Console.WriteLine("Correct!");
                 }
                 else{
                     Console.WriteLine($"Incorrect. The correct spelling was {retryWords[i]}");
                 }
             }
+        }
+
+        public static double GetAdjustedWPM(List<string> correctWords, double elapsedTime){
+            double totalChars = 0;
+            foreach(var s in correctWords) {
+                totalChars += s.Length;
+            }
+            double adjustedWordCount = totalChars / 5.0; 
+            return (adjustedWordCount / elapsedTime) * 60;
         }
     }
 }
