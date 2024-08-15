@@ -1,14 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading;
 using NAudio.Wave;
 using System.IO;
 using System.Net;
-using NAudio.Wave.Asio;
-using NAudio.Dmo;
-using NAudio.CoreAudioApi;
 
 namespace TypingPractice
 {
@@ -20,28 +14,37 @@ namespace TypingPractice
         static void Main(string[] args)
         {
             WebClient client = new();
-
+            bool gameSelected = false;
+            List<string> challengeWords = new();
 
             Console.WriteLine("Welcome to the Typing Practice Console App!");
-            Console.WriteLine("Please select game type for practice. Random, Challenge, Speed, or Scramble");
-            var gameType = Console.ReadLine();
-            List<string> challengeWords = new();
-            if (gameType.ToLower().Trim() == "random")
-            {
-                challengeWords = RandomWordGame(client);
+            while(!gameSelected){
+                gameSelected = true;
+                Console.WriteLine("Please select game type for practice. Random, Challenge, Speed, or Scramble");
+                var gameType = Console.ReadLine();
+                if (gameType.ToLower().Trim() == "random")
+                {
+                    challengeWords = RandomWordGame(client);
+                }
+                else if (gameType.ToLower().Trim() == "challenge")
+                {
+                    challengeWords = ChallengeWordGame(client);
+                }
+                else if (gameType.ToLower().Trim() == "scramble")
+                {
+                    challengeWords = ScrambleGame(client);
+                }
+                else if(gameType.ToLower().Trim() == "speed")
+                {
+                    SpeedGame(client);
+                    return;
+                }
+                else {
+                    Console.WriteLine("Please enter a valid game");
+                    gameSelected = false;
+                }
+
             }
-            else if (gameType.ToLower().Trim() == "challenge")
-            {
-                challengeWords = ChallengeWordGame(client);
-            }
-            else if (gameType.ToLower().Trim() == "scramble")
-            {
-                challengeWords = ScrambleGame(client);
-            }
-            // else if(gameType.ToLower().Trim() == "speed")
-            // {
-            //     SpeedGame(client);
-            // }
 
             Console.WriteLine("Press any key to start typing.");
             Console.ReadKey();
@@ -225,38 +228,64 @@ namespace TypingPractice
             return challengeWords;
         }
 
-        // public static void SpeedGame(WebClient client){
-        //     string downloadedString;
-        //     try
-        //     {
-        //         downloadedString = client.DownloadString($"https://random-word-api.herokuapp.com/word?number=10");
-        //     }
-        //     catch (Exception ex)
-        //     {
-        //         Console.WriteLine($"An error occurred while downloading the words: {ex.Message}");
-        //         return;
-        //     }
+        public static void SpeedGame(WebClient client){
+            string downloadedString;
+            try
+            {
+                downloadedString = client.DownloadString($"https://random-word-api.herokuapp.com/word?number=10");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"An error occurred while downloading the words: {ex.Message}");
+                return;
+            }
 
-        //     string[] currentWords = ApiResultToList(downloadedString);
-        //     string phrase = "";
+            List<string> currentWords = ApiResultToList(downloadedString);
+            string phrase = "";
 
-        //     foreach (var word in currentWords){
-        //         phrase += word + " ";
-        //     }
+            foreach (var word in currentWords){
+                phrase += word + " ";
+            }
 
-        //     Console.WriteLine(phrase);
+            Console.WriteLine("Press any key to start typing.");
+            Console.ReadKey();
+            int totalWords = currentWords.Count;
 
-        //     Console.WriteLine("Press any key to start typing.");
-        //     Console.ReadKey();
+            double totalTime = 0;
+            List<string> incorrectWords = new();
+            List<string> retryWords = new();
+            List<string> correctWords = new();
 
-        //     Console.WriteLine($"Type the words: {phrase}");
-        //     Stopwatch stopwatch = Stopwatch.StartNew();
-        //     var userInput = Console.ReadLine();
-        //     stopwatch.Stop();
+            Console.WriteLine($"Type the words: {phrase}");
+            Stopwatch stopwatch = Stopwatch.StartNew();
+            var userInput = Console.ReadLine();
+            stopwatch.Stop();
+            totalTime += stopwatch.Elapsed.TotalSeconds;
 
+            string[] userResults = userInput.Split(" ");
 
+            for(int i = 0; i < currentWords.Count; i++){
+                if(userResults.Length != currentWords.Count){
+                    Console.WriteLine("You did not type all the words!");
+                    return;
+                }
+                if (userResults[i].ToLower() != currentWords[i]){
+                    Console.WriteLine($"{userResults[i]} is Incorrect!");
+                    Console.WriteLine($"The correct answer was: {currentWords[i]}");
+                    incorrectWords.Add(userResults[i]);
+                    retryWords.Add(currentWords[i]);
+                }
+                else {
+                    correctWords.Add(userResults[i]);
+                    Console.WriteLine("Correct!");
+                }
+            }
 
-        // }
+            double typingSpeed = correctWords.Count / totalTime;
+            double wpm = GetAdjustedWPM(correctWords, totalTime);
+            Console.WriteLine($"Your typing speed is {typingSpeed:F2} words per second. (Adjusted WPM: {wpm:F2})");
+            RetryMechanic(correctWords.Count, totalWords, incorrectWords, retryWords);
+        }
 
         public static string ScrambleLetters(string input)
         {
